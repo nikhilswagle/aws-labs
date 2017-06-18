@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<project>
+	<!-- <parent>
+		<artifactId>base-pom</artifactId>
+		<groupId>com.incomm.build.pom</groupId>
+		<version>1</version>
+	</parent> -->
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.jlearning.aws.lambda</groupId>
+	<artifactId>sns-lambda</artifactId>
+	<packaging>jar</packaging>
+	<name>SNS Lambda Integration</name>
+	<version>1.0</version>
+	<build>
+		<finalName>${artifactId}-${version}</finalName>
+		<plugins>
+			<!-- <plugin>
+				<inherited>true</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<minmemory>128m</minmemory>
+					<maxmemory>256m</maxmemory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-shade-plugin</artifactId>
+		        <version>2.3</version>
+		        <configuration>
+		          <createDependencyReducedPom>false</createDependencyReducedPom>
+		        </configuration>
+		        <executions>
+		          <execution>
+		            <phase>package</phase>
+		            <goals>
+		              <goal>shade</goal>
+		            </goals>
+		          </execution>
+		        </executions>
+	      </plugin>
+		</plugins>
+	</build>	
+	<dependencies>
+		<dependency>
+		    <groupId>com.amazonaws</groupId>
+		    <artifactId>aws-java-sdk-lambda</artifactId>
+		    <version>1.11.136</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.amazonaws</groupId>
+		    <artifactId>aws-lambda-java-core</artifactId>
+		    <version>1.1.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.amazonaws</groupId>
+		    <artifactId>aws-java-sdk-sns</artifactId>
+		    <version>1.11.136</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency> -->
+	</dependencies>
+	<description>SNS Lambda Integration</description>
+</project>
+

@@ -1,0 +1,3 @@
+com\jlearning\aws\lambda\sns\SNSEmailSubscriber.class
+com\jlearning\aws\lambda\HelloWorld.class
+com\jlearning\aws\lambda\sns\model\Payload.class
