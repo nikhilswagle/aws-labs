@@ -1,0 +1,8 @@
+com\jlearning\aws\lambda\kinesis\util\StockDataUtil.class
+com\jlearning\aws\lambda\kinesis\DataProducer.class
+com\jlearning\aws\lambda\kinesis\MainApp.class
+com\jlearning\aws\lambda\kinesis\model\DataRetrievalRequest.class
+com\jlearning\aws\lambda\kinesis\model\Payload.class
+com\jlearning\aws\lambda\kinesis\model\ScheduledEvent.class
+com\jlearning\aws\lambda\kinesis\model\Detail.class
+com\jlearning\aws\lambda\rest\RestClient.class
