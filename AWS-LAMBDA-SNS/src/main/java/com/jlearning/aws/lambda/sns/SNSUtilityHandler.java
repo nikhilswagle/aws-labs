@@ -14,13 +14,13 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
-import com.jlearning.aws.lambda.sns.model.Payload;
+import com.jlearning.aws.lambda.sns.model.ConfirmSubscriptionReq;
+import com.jlearning.aws.lambda.sns.model.PublishToTopicRequest;
+import com.jlearning.aws.lambda.sns.model.SubscribeEmailRequest;
 
-public class SNSEmailSubscriber {
+public class SNSUtilityHandler {
 	
 	private static final AmazonSNS client = getClient();
-	private static final String TOPIC_NAME = "test-sns-topic";
-	private static final String SUBJECT = "S3 File Upload Event !!!";
 	
 	public static AmazonSNS getClient(){
 		// Client Configuration
@@ -34,7 +34,7 @@ public class SNSEmailSubscriber {
 		return client;
 	}
 
-	public CreateTopicResult createTopicHandler(String topicName, Context context){
+	public CreateTopicResult createTopic(String topicName, Context context){
 		LambdaLogger logger = context.getLogger();
 		logger.log("Start creating topic:"+topicName);
 		//******************************* CREATE TOPIC ***********************************//		
@@ -48,34 +48,40 @@ public class SNSEmailSubscriber {
 		//******************************* END ***********************************//
 	}
 	
-	public SubscribeResult subscribeEmailHandler(String email, Context context){
+	public SubscribeResult subscribeEmailToTopic(SubscribeEmailRequest emailRequest, Context context){
 		LambdaLogger logger = context.getLogger();
-		logger.log("Start email subscription:"+email);
-		//******************************* SUBSCRIBE TOPIC ***********************************//
-		// Subscribe to the topic.
-		SubscribeRequest request = new SubscribeRequest(createTopicHandler(TOPIC_NAME, context).getTopicArn(), "email", email);
-		SubscribeResult response = client.subscribe(request);
-		logger.log(response.toString());
-		return response;
+		logger.log("Start email subscription for: "+emailRequest.getEmailAddress());
+		//******************************* SUBSCRIBE EMAIL TO TOPIC ***********************************//
+		return subscribeToTopic(emailRequest, "email", context);
 		//******************************* END ***********************************//
 	}
 	
-	public ConfirmSubscriptionResult confirmSubscriptionHandler(String token, Context context){
+	private SubscribeResult subscribeToTopic(SubscribeEmailRequest emailRequest, String protocol, Context context){
 		LambdaLogger logger = context.getLogger();
-		logger.log("Start confirming subscription:"+token);
+		//******************************* SUBSCRIBE TOPIC ***********************************//
+		SubscribeRequest request = new SubscribeRequest(createTopic(emailRequest.getTopicName(), context).getTopicArn(), "email", emailRequest.getEmailAddress());
+		SubscribeResult response = client.subscribe(request);
+		logger.log(response.toString());
+		//******************************* END ***********************************//
+		return response;
+	}
+	
+	public ConfirmSubscriptionResult confirmSubscription(ConfirmSubscriptionReq req , Context context){
+		LambdaLogger logger = context.getLogger();
+		logger.log("Start confirming subscription: "+req.getToken());
 		//******************************* CONFIRM SUBSCRIPTION ***********************************//
-		ConfirmSubscriptionRequest request = new ConfirmSubscriptionRequest(createTopicHandler(TOPIC_NAME, context).getTopicArn(), token);
+		ConfirmSubscriptionRequest request = new ConfirmSubscriptionRequest(createTopic(req.getTopicName(), context).getTopicArn(), req.getToken());
 		ConfirmSubscriptionResult response = client.confirmSubscription(request);
 		logger.log(response.toString());
 		return response;
 		//******************************* END ***********************************//
 	}
 	
-	public PublishResult publishHandler(Payload message, Context context){
+	public PublishResult publish(PublishToTopicRequest req, Context context){
 		LambdaLogger logger = context.getLogger();
-		logger.log("Start publishing to topic: "+message.getMessage());
+		logger.log("Start publishing to topic: "+req.getMessage());
 		//******************************* PUBLISH MESSAGE ***********************************//
-		PublishRequest request = new PublishRequest(createTopicHandler(TOPIC_NAME, context).getTopicArn(), message.getMessage(), SUBJECT);
+		PublishRequest request = new PublishRequest(createTopic(req.getTopicName(), context).getTopicArn(), req.getMessage(), req.getSubject());
 		PublishResult response = client.publish(request);
 		logger.log(response.toString());
 		return response;

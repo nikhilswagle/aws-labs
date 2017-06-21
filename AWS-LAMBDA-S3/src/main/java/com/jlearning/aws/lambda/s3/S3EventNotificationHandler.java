@@ -2,7 +2,10 @@ package com.jlearning.aws.lambda.s3;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 
@@ -23,15 +26,19 @@ import com.amazonaws.services.s3.event.S3EventNotification.S3Entity;
 import com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.jlearning.aws.lambda.s3.model.Payload;
+import com.jlearning.aws.lambda.sns.model.PublishToTopicRequest;
 
-public class S3EventNotifier {
+public class S3EventNotificationHandler {
 	
 	private static final AmazonS3 S3_CLIENT = getS3Client();
 	
 	private static final AWSLambda LAMBDA_CLIENT = getLambdaClient();
 	
 	private static final String ARN_LAMBDA_FUNCTION_PUBLISH_MESSAGE = "arn:aws:lambda:us-east-1:664912755804:function:publish-message-handler";
+	
+	private static final String S3_LOAD_EVENT_TOPIC = "s3-event-topic";
+	
+	private static final String S3_LOAD_EVENT_EMAIL_SUBJECT = "NEW OBJECT ADDED";
 		
 	private static LambdaLogger logger;
 	
@@ -73,20 +80,20 @@ public class S3EventNotifier {
 	 * 1. Set up trigger on lambda function for S3 putObject event for a specific bucket/object
 	 * 2. Set up event on the specific S3 bucket for an object with certain prefix and suffix
 	 * 
-	 * The function reads the stocks data in csv format and publishes to the SNS topic so that email
+	 * The function reads the file data and publishes the bucket/filenames to the SNS topic so that email
 	 * is sent to subscribers of the topic.
 	 *  
 	 * @param event
 	 * @param context
 	 * @return
 	 */
-	public List<String> s3EventNotifyHandler(S3Event event, Context context){
+	public Map<String, List<String>> notifyS3Event(S3Event event, Context context){
 		logger = context.getLogger();
 		logger.log("Start reading object");
 		printLineBreak();
 		//******************************* READ S3 OBJECT ***********************************//
-		List<String> responseList = new ArrayList<String>();
-		String response;
+		Map<String, List<String>> response = new HashMap<String, List<String>>();
+		String s3Obj;
 		String data = null;
 		InvokeResult result;
 		List<S3EventNotificationRecord> recordList = event.getRecords();
@@ -96,27 +103,32 @@ public class S3EventNotifier {
 			logger.log("Event Source : "+record.getEventSource()); printLineBreak();
 			S3Entity entity = record.getS3();
 			S3Object object = S3_CLIENT.getObject(new GetObjectRequest(entity.getBucket().getName(), entity.getObject().getKey()));
-			InputStream inStream = object.getObjectContent();
+			InputStream inStream = object.getObjectContent();			
+			s3Obj = entity.getBucket().getName()+"::"+entity.getObject().getKey();
 			
-			response = entity.getBucket().getName()+"::"+entity.getObject().getKey();
+			// Add bucket wise list of files
+			addToResponse(response, entity);
 			
 			//Process input stream
 			try{
-				logger.log(response); printLineBreak();
+				logger.log(s3Obj); printLineBreak();
 				data = IOUtils.toString(inStream);
 				logger.log(data); printLineBreak();
 				inStream.close();
-				responseList.add(response);
 			}
 			catch(Exception ex){
 				logger.log("Exception occured"); printLineBreak();
-			}
-			
-			// Publish to the topic 
-			result = publishToTopic(response);
-			logger.log(result.toString()); printLineBreak();
+			}		
 		}
-		return responseList;
+		// Publish to the topic
+		PublishToTopicRequest publishReq = new PublishToTopicRequest();
+		publishReq.setTopicName(S3_LOAD_EVENT_TOPIC);
+		publishReq.setSubject(S3_LOAD_EVENT_EMAIL_SUBJECT);
+		publishReq.setMessage(buildMessageToPublish(response));
+		result = publishToTopic(publishReq);
+		logger.log(result.toString()); printLineBreak();
+		
+		return response;
 		//******************************* END ***********************************//
 	}
 	
@@ -128,15 +140,42 @@ public class S3EventNotifier {
 	 * Invoke lambda function to send out email. 
 	 * @param message
 	 */
-	private InvokeResult publishToTopic(String message){
+	private InvokeResult publishToTopic(PublishToTopicRequest publishReq){
 		InvokeRequest request = new InvokeRequest();
-		Payload payload = new Payload(message);
-		logger.log("Invoking lambda function with payload: "+payload.toString());
+		logger.log("Invoking lambda function with payload: "+publishReq.toString());
 		request.withFunctionName(ARN_LAMBDA_FUNCTION_PUBLISH_MESSAGE)
-			   .withPayload(payload.toString())
+			   .withPayload(publishReq.toString())
 			   .withInvocationType(InvocationType.RequestResponse)
-			   .withLogType(LogType.None);
-		
+			   .withLogType(LogType.None);		
 		return LAMBDA_CLIENT.invoke(request);
-	}	
+	}
+	
+	private String buildMessageToPublish(Map<String, List<String>> response){
+		String baseContent = "Given below is the list of objects added.\n\n";
+		
+		StringBuffer bucket = null;
+		for(Entry<String, List<String>> entry : response.entrySet()){
+			bucket = new StringBuffer("Bucket: ");
+			bucket.append(entry.getKey());
+			bucket.append("\n");
+			
+			for(String obj : entry.getValue()){
+				bucket.append("\t");
+				bucket.append(obj);
+				bucket.append("\n");
+			}
+			
+			bucket.append("\n");
+		}		
+		return baseContent+bucket;
+	}
+	
+	private void addToResponse(Map<String, List<String>> response, S3Entity entity){
+		String key = entity.getBucket().getName();
+		String objName = entity.getObject().getKey();
+		if(!response.containsKey(key)){
+			response.put(key, new ArrayList<String>());
+		}
+		response.get(key).add(objName);
+	}
 }

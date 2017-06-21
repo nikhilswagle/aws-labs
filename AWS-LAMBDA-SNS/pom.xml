@@ -6,10 +6,10 @@
 		<version>1</version>
 	</parent> -->
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.jlearning.aws.lambda</groupId>
-	<artifactId>aws-lambda-sns</artifactId>
+	<groupId>com.jlearning.awslabs.lambda</groupId>
+	<artifactId>sns-utility</artifactId>
 	<packaging>jar</packaging>
-	<name>SNS Lambda Integration</name>
+	<name>SNS Utility</name>
 	<version>1.0</version>
 	<build>
 		<finalName>${artifactId}-${version}</finalName>

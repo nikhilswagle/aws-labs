@@ -1,0 +1,6 @@
+com\jlearning\aws\lambda\sns\model\ConfirmSubscriptionReq.class
+com\jlearning\aws\lambda\sns\model\PublishToTopicRequest.class
+com\jlearning\aws\lambda\sns\model\SubscribeEmailRequest.class
+com\jlearning\aws\lambda\HelloWorld.class
+com\jlearning\aws\lambda\sns\model\Payload.class
+com\jlearning\aws\lambda\sns\SNSUtilityHandler.class

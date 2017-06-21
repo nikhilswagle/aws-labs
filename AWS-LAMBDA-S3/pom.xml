@@ -6,10 +6,10 @@
 		<version>1</version>
 	</parent> -->
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.jlearning.aws.lambda</groupId>
-	<artifactId>aws-lambda-s3</artifactId>
+	<groupId>com.jlearning.awslabs.lambda</groupId>
+	<artifactId>s3-event-notifier</artifactId>
 	<packaging>jar</packaging>
-	<name>S3 Lambda Integration</name>
+	<name>S3 Load Event Notifier</name>
 	<version>1.0</version>
 	<build>
 		<finalName>${artifactId}-${version}</finalName>
@@ -70,11 +70,11 @@
 		    <artifactId>aws-java-sdk-s3</artifactId>
 		    <version>1.11.145</version>
 		</dependency>
-		<!-- <dependency>
-		    <groupId>com.amazonaws</groupId>
-		    <artifactId>aws-java-sdk-kinesis</artifactId>
-		    <version>1.11.145</version>
-		</dependency> -->
+		<dependency>
+		    <groupId>com.jlearning.awslabs.lambda</groupId>
+		    <artifactId>sns-utility</artifactId>
+		    <version>1.0</version>
+		</dependency>
 		<!-- <dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
